@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Realtime PostgreSQL Table</title>
+    <link rel="stylesheet" href="style.css" />
+    <script src="/socket.io/socket.io.js"></script>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Data Realtime dari PostgreSQL</h1>
+      <div id="tables" class="table-grid">
+        <div id="countDisplay" class="count-display"></div>
+      </div>
+
+      <div id="status">Koneksi backend: <span id="statusText">Terhubung</span></div>
+      <div id="dbStatus">Status database: <span id="dbStatusText">Menunggu...</span></div>
+    </div>
+
+    <script>
+      let socket;
+      let currentData = [];
+
+      const tablesDiv = document.getElementById('tables');
+      const statusText = document.getElementById('statusText');
+      const dbStatusText = document.getElementById('dbStatusText');
+      const countDisplay = document.getElementById('countDisplay');
+
+      function createTable(data, title) {
+        const container = document.createElement('div');
+        container.className = 'table-wrapper';
+
+        const caption = document.createElement('h3');
+        caption.textContent = title;
+        container.appendChild(caption);
+
+        const table = document.createElement('table');
+        const thead = document.createElement('thead');
+        const tbody = document.createElement('tbody');
+
+        if (data.length > 0) {
+          const headers = Object.keys(data[0]);
+          const headerRow = document.createElement('tr');
+          headers.forEach((h) => {
+            const th = document.createElement('th');
+            th.textContent = h;
+            headerRow.appendChild(th);
+          });
+          thead.appendChild(headerRow);
+
+          data.forEach((row) => {
+            const tr = document.createElement('tr');
+            headers.forEach((h) => {
+              const td = document.createElement('td');
+              td.textContent = row[h];
+              tr.appendChild(td);
+            });
+            tbody.appendChild(tr);
+          });
+        }
+
+        table.appendChild(thead);
+        table.appendChild(tbody);
+        container.appendChild(table);
+        return container;
+      }
+
+      function updateClock() {
+        const el = document.getElementById('clock');
+        if (el) {
+          const now = new Date();
+          el.textContent = now.toLocaleTimeString();
+        }
+      }
+
+      function updateLayout(data) {
+        tablesDiv.innerHTML = '';
+        countDisplay.innerHTML = '';
+        tablesDiv.appendChild(countDisplay);
+
+        if (data.type === 'time_info') {
+          countDisplay.textContent = '';
+          tablesDiv.innerHTML += '<div class="clock" id="clock"></div>';
+          updateClock();
+          setInterval(updateClock, 1000);
+          return;
+        }
+
+        let rows = [];
+        if (data.type === 'single') {
+          rows = [data.tables];
+        } else if (data.type === 'multiple') {
+          rows = data.tables.slice(0, 4);
+        } else if (Array.isArray(data)) {
+          rows = data.slice(0, 4);
+        }
+
+        countDisplay.textContent = `Jumlah data: ${rows.length}`;
+
+        if (rows.length === 1) {
+          const wrapper = document.createElement('div');
+          wrapper.className = 'table-wrapper';
+          wrapper.appendChild(createTable(rows, 'Tabel 1'));
+          tablesDiv.appendChild(wrapper);
+          return;
+        }
+
+        const leftCol = document.createElement('div');
+        leftCol.className = 'column';
+        const rightCol = document.createElement('div');
+        rightCol.className = 'column';
+
+        rows.forEach((row, index) => {
+          const table = createTable([row], `Tabel ${index + 1}`);
+          if (index % 2 === 0) {
+            leftCol.appendChild(table);
+          } else {
+            rightCol.appendChild(table);
+          }
+        });
+
+        const container = document.createElement('div');
+        container.className = 'flex-columns';
+        container.appendChild(leftCol);
+        container.appendChild(rightCol);
+        tablesDiv.appendChild(container);
+      }
+
+      function connectSocket() {
+        socket = io();
+
+        socket.on('data_update', (data) => {
+          currentData = data;
+          updateLayout(data);
+        });
+
+        socket.on('db_status', (msg) => {
+          dbStatusText.textContent = msg;
+          dbStatusText.style.color = msg === 'Connected' ? 'green' : 'red';
+        });
+
+        socket.on('connect', () => {
+          statusText.textContent = 'Terhubung';
+          statusText.style.color = 'green';
+        });
+
+        socket.on('disconnect', () => {
+          statusText.textContent = 'Terputus';
+          statusText.style.color = 'red';
+          updateLayout(currentData);
+          dbStatusText.textContent = 'Disconnected';
+          dbStatusText.style.color = 'red';
+
+          updateLayout({ type: 'time_info', value: new Date().toISOString() });
+        });
+
+        socket.on('error', (err) => {
+          console.error('WebSocket error:', err);
+          updateLayout(currentData);
+        });
+      }
+
+      window.addEventListener('DOMContentLoaded', connectSocket);
+    </script>
+  </body>
+</html>
