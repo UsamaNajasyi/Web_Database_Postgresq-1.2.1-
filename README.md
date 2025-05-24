@@ -19,8 +19,7 @@ Aplikasi web ini menampilkan data dari database PostgreSQL secara real-time meng
 1. **Clone repository:**
 
 ```bash
-git clone https://github.com/username/namaproject.git
-cd namaproject
+git clone https://github.com/UsamaNajasyi/Web_Database_Postgresq-1.2.1-.git
 ```
 
 2. **Install dependencies:**
@@ -39,7 +38,7 @@ DB_PASS=yourpassword
 DB_PORT=5432
 ```
 
-> Pastikan database `users` dan tabel `users` sudah tersedia.
+> Pastikan database dan tabel sudah tersedia.
 
 4. **Jalankan server:**
 
