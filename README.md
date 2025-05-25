@@ -1,12 +1,13 @@
 
-# 📊 Web Data Streaming (Node.js + Socket.IO + PostgreSQL)
+# 📊 Web Data Streaming (Node.js + Socket.IO + PostgreSQL) UPDATE
 
 Aplikasi web ini menampilkan data dari database PostgreSQL secara real-time menggunakan Socket.IO dan Express.
 
 ## 🚀 Fitur
-- Streaming data real-time dari tabel `users`.
+- Streaming data real-time dari tabel.
 - Koneksi database PostgreSQL yang otomatis reload saat `.env` berubah.
 - Status koneksi database dikirim ke klien secara live.
+- UPDATE: tampilan menjadi jam ketika tidak terhubung ke backend
 
 ## 📦 Teknologi
 - Node.js + Express
@@ -51,6 +52,6 @@ Akses di: [http://localhost:3000](http://localhost:3000)
 ## 📝 Catatan
 
 - Aplikasi ini secara otomatis memeriksa perubahan pada file `.env` setiap 10 detik.
-- Data dari tabel `users` diambil dan dikirim ke klien setiap 2 detik.
+- Data dari tabel diambil dan dikirim ke klien setiap 2 detik.
 
 
